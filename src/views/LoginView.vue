@@ -72,7 +72,9 @@
 
 <script setup>
 import { ref } from 'vue'
-
+import { useAuth } from '@/composables/useAuth'
+const { login } = useAuth()
+const emit = defineEmits(['success'])
 /**
  * Estado
  */
@@ -99,19 +101,7 @@ const rules = {
  * Mock de autenticación (reemplazá por tu servicio real)
  */
 async function loginMock({ email, password }) {
-  await new Promise(r => setTimeout(r, 700)) // delay para UX
-  const okEmail = 'user@test.com'
-  const okPass = '123456'
-  if (email === okEmail && password === okPass) {
-    const token = 'FAKE_TOKEN_123'
-    // Persistencia mínima
-    localStorage.setItem('auth_token', token)
-    localStorage.setItem('auth_email', email)
-    return { token, email }
-  }
-  const err = new Error('Credenciales inválidas')
-  err.code = 'INVALID_CREDENTIALS'
-  throw err
+  
 }
 
 /**
@@ -120,18 +110,15 @@ async function loginMock({ email, password }) {
 async function onSubmit() {
   submitError.value = ''
 
-  // Si el form no es válido, Vuetify ya bloquea el botón, pero chequeamos igual
   if (!isValid.value || loading.value) return
 
   loading.value = true
   try {
-    await loginMock({ email: email.value, password: password.value })
-    // TODO: cuando agreguen router:
-    // const router = useRouter()
-    // router.push('/')  // o a la ruta previa guardada
-    // Por ahora, feedback simple:
-    // eslint-disable-next-line no-alert
-    alert('Login exitoso')
+    // usa el composable (persiste en localStorage adentro de useAuth)
+    await login(email.value, password.value)
+
+    // avisale al padre (App.vue) que el login fue ok
+    emit('success')
   } catch (e) {
     submitError.value = e?.message || 'No se pudo iniciar sesión'
   } finally {
