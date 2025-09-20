@@ -1,17 +1,14 @@
 <template>
-  
-  <ListadoProductosConBusqueda/>
-
+  <LoginView />
 </template>
 
-
 <script>
-import ListadoProductosConBusqueda from './ListadoProductosConBusqueda.vue';
+import LoginView from './views/LoginView.vue'
 
 export default {
-  name: ' App',
+  name: 'App',
   components: {
-    ListadoProductosConBusqueda
-  },
+    LoginView
+  }
 }
 </script>
