@@ -65,5 +65,5 @@ const ProductsDB = {
   state,
 }
 
-export default Productos
+export default ProductsDB
 export { state as ProductsState }

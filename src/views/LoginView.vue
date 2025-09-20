@@ -72,6 +72,8 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 /**
  * Estado
@@ -117,6 +119,9 @@ async function loginMock({ email, password }) {
 /**
  * Submit
  */
+const router = useRouter()
+const authStore = useAuthStore()
+
 async function onSubmit() {
   submitError.value = ''
 
@@ -125,13 +130,9 @@ async function onSubmit() {
 
   loading.value = true
   try {
-    await loginMock({ email: email.value, password: password.value })
-    // TODO: cuando agreguen router:
-    // const router = useRouter()
-    // router.push('/')  // o a la ruta previa guardada
-    // Por ahora, feedback simple:
-    // eslint-disable-next-line no-alert
-    alert('Login exitoso')
+    const session = await loginMock({ email: email.value, password: password.value })
+    authStore.setSession(session)
+    router.push({ name: 'home' })
   } catch (e) {
     submitError.value = e?.message || 'No se pudo iniciar sesión'
   } finally {

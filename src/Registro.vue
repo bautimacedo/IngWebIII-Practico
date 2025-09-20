@@ -26,7 +26,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+
+defineOptions({
+  name: 'RegistroForm',
+})
 
 const name = ref('')
 const registeredName = ref('')
