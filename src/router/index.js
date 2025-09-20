@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // Importar vistas
 import HomeView from '../views/HomeView.vue'
 import ProductosView from '../views/ProductosView.vue'
+import LoginView from '../views/LoginView.vue'
 //import ProductoDetalle from '../views/ProductoDetalle.vue'
 //import ClientesView from '../views/ClientesView.vue'
 
@@ -24,6 +25,11 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    }
   ],
 })
 

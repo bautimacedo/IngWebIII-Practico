@@ -6,7 +6,7 @@
 
 
 <script>
-import ListadoProductosConBusqueda from '../ListadoProductosConBusqueda.vue'
+import ListadoProductosConBusqueda from '../components/ListadoProductosConBusqueda.vue'
 
 export default {
   name: ' App',
