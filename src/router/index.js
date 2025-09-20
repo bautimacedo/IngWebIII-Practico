@@ -4,8 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ProductosView from '../views/ProductosView.vue'
 import LoginView from '../views/LoginView.vue'
-import ClienteView from '@/views/ClientesView.vue'
-//import ProductoDetalle from '../views/ProductoDetalle.vue'
+import ProductoDetalleView from '../views/ProductoDetalleView.vue'
 //import ClientesView from '../views/ClientesView.vue'
 
 const router = createRouter({
@@ -20,6 +19,12 @@ const router = createRouter({
       path: '/productos',
       name: 'productos',
       component: ProductosView,
+    },
+    {
+      path: '/productos/:id',
+      name: 'producto-detalle',
+      component: ProductoDetalleView,
+      props: true,
     },
     // fallback para rutas no encontradas
     {
@@ -37,6 +42,12 @@ const router = createRouter({
       component: ClienteView,
     }
   ],
+
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  },
+
 })
 
 export default router
