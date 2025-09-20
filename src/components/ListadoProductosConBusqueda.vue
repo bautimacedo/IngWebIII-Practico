@@ -85,19 +85,24 @@
         </v-expand-transition>
 
         <!-- Grilla de productos -->
-        <v-row>
-          <v-col
-            v-for="p in filteredProducts"
-            :key="p.id"
-            cols="12" sm="6" md="4" lg="3"
-          >
+<v-row>
+  <v-col
+    v-for="p in filteredProducts"
+    :key="p.id"
+    cols="12" sm="6" md="4" lg="3"
+  >
             <v-hover v-slot="{ isHovering, props }">
-              <v-card
-                v-bind="props"
-                class="glass-card"
-                :elevation="isHovering ? 16 : 8"
-                rounded="xl"
-              >
+        <v-card
+          v-bind="props"
+          class="glass-card"
+          :elevation="isHovering ? 16 : 8"
+          rounded="xl"
+          role="button"
+          tabindex="0"
+          @click="verDetalle(p.id)"
+          @keyup.enter.prevent="verDetalle(p.id)"
+          @keyup.space.prevent="verDetalle(p.id)"
+        >
                 <v-img
                   :src="p.image"
                   height="160"
@@ -138,18 +143,18 @@
                 </v-card-item>
 
                 <v-card-actions class="px-4 pb-4">
-                  <v-btn
-                    :disabled="p.stock === 0"
-                    color="primary"
-                    block
-                    size="large"
-                    prepend-icon="mdi-cart-plus"
-                    @click="addToCart(p.id)"
-                  >
-                    Agregar al carrito
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
+                <v-btn
+                  :disabled="p.stock === 0"
+                  color="primary"
+                  block
+                  size="large"
+                  prepend-icon="mdi-cart-plus"
+                  @click.stop="addToCart(p.id)"
+                >
+                  Agregar al carrito
+                </v-btn>
+              </v-card-actions>
+            </v-card>
             </v-hover>
           </v-col>
         </v-row>
@@ -273,6 +278,7 @@
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 
 /* --------- Tema / Dark mode --------- */
@@ -289,6 +295,7 @@ const sortByPrice = ref(false)
 const highlightLowStock = ref(true)
 const drawer = ref(false)
 const openSettings = ref(false)
+const router = useRouter()
 
 const products = ref([
   { id: 1, name: 'Arroz',   price: 10, stock: 10, image: placeholder(1) },
@@ -374,6 +381,10 @@ function addToCart(id) {
   snackbarOpen(`${p.name} agregado`, 'mdi-cart-plus', 'success')
 }
 
+function verDetalle(id) {
+  router.push({ name: 'producto-detalle', params: { id } })
+}
+
 function decrement(id) {
   const line = cart.value.find(i => i.id === id)
   if (!line) return
@@ -437,6 +448,7 @@ function snackbarOpen(text, icon = 'mdi-check', color = 'success') {
   background: rgba(255,255,255,0.65);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.35);
+  cursor: pointer;
 }
 :deep(.v-theme--dark) .glass-card {
   background: rgba(30,30,36,0.45);
