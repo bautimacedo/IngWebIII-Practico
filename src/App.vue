@@ -1,5 +1,7 @@
 <template>
-  <LoginView />
+  
+  <ListadoProductosConBusqueda/>
+
 </template>
 
 <script>
