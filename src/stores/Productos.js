@@ -3,9 +3,7 @@ import { reactive } from 'vue'
 const state = reactive({
   products: [
     { id: 1, name: 'Arroz',   price: 10, stock: 10, image: '/images/arroz.jpg' },
-    { id: 2, name: 'Lechuga', price: 5,  stock: 15, image: '/images/lechuga.jpg' },
     { id: 3, name: 'Avena',   price: 20, stock: 100, image: '/images/avena.jpg' },
-    { id: 4, name: 'Tomate',  price: 15, stock: 0,  image: '/images/tomate.jpg' },
     { id: 5, name: 'Aceite',  price: 35, stock: 7,  image: '/images/aceite.jpg' },
     { id: 6, name: 'Yerba',   price: 22, stock: 3,  image: '/images/yerba.jpg' },
   ],
