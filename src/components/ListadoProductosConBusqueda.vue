@@ -3,7 +3,7 @@
   <v-app>
     <!-- App Bar -->
     <v-app-bar flat class="backdrop-blur-lg bg-gradient-to-r">
-      <v-app-bar-title class="font-weight-bold">Listado <span class="text-primary">Productos</span></v-app-bar-title>
+      <v-app-bar-title class="font-weight-bold">Tienda <span class="text-primary">Pro</span></v-app-bar-title>
 
       <v-text-field
         v-model.trim="query"
@@ -115,69 +115,188 @@
                     <div class="text-h6">{{ money(p.price) }}</div>
                   </div>
 
-  <ul class="list-group" @add-to-cart="manejarCarrito">
-    <!-- NO encontrado -->
-    <li class="list-group-item bg-danger text-white" v-if="productoNoEncontrado">
-      <p>Producto NO encontrado</p>
-    </li>
+                  <div class="mt-2 d-flex gap-2">
+                    <v-chip
+                      v-if="p.stock > 0"
+                      :color="lowStock(p) && highlightLowStock ? 'warning' : 'success'"
+                      size="small"
+                      variant="tonal"
+                      prepend-icon="mdi-package-variant-closed"
+                    >
+                      Stock: {{ p.stock }}
+                    </v-chip>
+                    <v-chip
+                      v-else
+                      color="error"
+                      size="small"
+                      variant="tonal"
+                      prepend-icon="mdi-close-octagon"
+                    >
+                      Sin stock
+                    </v-chip>
+                  </div>
+                </v-card-item>
 
-    <!-- Encontrado SIN stock -->
-    <li class="list-group-item" style="background-color: #ff9800;" v-else-if="productoEncontrado && stockCero">
-      <p>Producto encontrado sin stock</p>
-      {{ productoEncontrado.name }} - ${{ productoEncontrado.price }} (Stock: {{ productoEncontrado.stock }})
-    </li>
+                <v-card-actions class="px-4 pb-4">
+                  <v-btn
+                    :disabled="p.stock === 0"
+                    color="primary"
+                    block
+                    size="large"
+                    prepend-icon="mdi-cart-plus"
+                    @click="addToCart(p.id)"
+                  >
+                    Agregar al carrito
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-hover>
+          </v-col>
+        </v-row>
+      </v-container>
 
-    <!-- Encontrado CON stock -->
-    <li class="list-group-item bg-success text-white" v-else-if="productoEncontrado" >
-      <p>Producto encontrado</p>
-      {{ productoEncontrado.name }} - ${{ productoEncontrado.price }} (Stock: {{ productoEncontrado.stock }})
-        <button 
-            class="btn btn-sm btn-primary"
-            @click="agregarProductoCarrito(productoEncontrado.id)"
-        >
-            Agregar al carrito
-        </button>
-    </li>
-  </ul>
+      <!-- Botón flotante Carrito -->
+      <v-fab
+        app
+        location="bottom end"
+        size="large"
+        color="primary"
+        @click="drawer = true"
+      >
+        <v-badge :content="cartCount" color="error" v-if="cartCount > 0">
+          <v-icon icon="mdi-cart-outline" size="28" />
+        </v-badge>
+        <template v-else>
+          <v-icon icon="mdi-cart-outline" size="28" />
+        </template>
+      </v-fab>
 
-    <h3>Lista completa de productos</h3>
-  <ul class="list-group">
-    <li class="list-group-item" v-for="product in products" :key="product.id">
-      {{ product.name }} - ${{ product.price }} (Stock: {{ product.stock }})
-    </li>
-  </ul>
+      <!-- Drawer Carrito -->
+      <v-navigation-drawer
+        v-model="drawer"
+        location="right"
+        width="420"
+        floating
+        border="sm"
+        class="glass-drawer"
+      >
+        <v-toolbar flat>
+          <v-toolbar-title>Carrito</v-toolbar-title>
+          <v-spacer />
+          <v-btn icon="mdi-close" variant="text" @click="drawer = false" />
+        </v-toolbar>
 
-    <h3>Carrito</h3>
-    <h5 v-if="carrito.length === 0">Carrito Vacio!</h5>
+        <div class="px-4 pb-2" v-if="cart.length === 0">
+          <v-alert type="info" variant="tonal" title="Carrito vacío" text="Agregá productos desde la grilla." />
+        </div>
 
-    <ul class="list-group">
-        <li class="list-group-item" v-for="product in carrito" :key="product.id">
-            {{ product.name }} - ${{ product.price }} × {{ product.cant }} unidades = ${{ product.total }}
-            
-            <button 
-                class="btn btn-sm btn-primary"
-                @click="eliminarProductoCarrito(product.id)"
-            >
-                -
-            </button>
+        <v-list v-else lines="two" class="pt-0">
+          <v-list-item
+            v-for="item in cart"
+            :key="item.id"
+            :title="item.name"
+            :subtitle="`${money(item.price)} × ${item.cant} = ${money(item.total)}`"
+          >
+            <template #prepend>
+              <v-avatar size="36" rounded="lg">
+                <v-img :src="imageOf(item.id)" cover />
+              </v-avatar>
+            </template>
 
-        </li>
-    </ul>
+            <template #append>
+              <div class="d-flex align-center gap-2">
+                <v-btn icon="mdi-minus" size="30" variant="tonal" @click="decrement(item.id)" />
+                <v-btn
+                  icon="mdi-plus"
+                  size="30"
+                  variant="tonal"
+                  :disabled="productById(item.id)?.stock === 0"
+                  @click="addToCart(item.id)"
+                />
+                <v-btn icon="mdi-trash-can-outline" size="30" variant="text" color="error" @click="removeLine(item.id)" />
+              </div>
+            </template>
+          </v-list-item>
+        </v-list>
+
+        <v-divider class="my-4" />
+
+        <div class="px-4 pb-6" v-if="cart.length">
+          <v-row>
+            <v-col cols="6" class="text-medium-emphasis">Subtotal</v-col>
+            <v-col cols="6" class="text-right">{{ money(subtotal) }}</v-col>
+
+            <v-col cols="6" class="text-medium-emphasis">IVA (21%)</v-col>
+            <v-col cols="6" class="text-right">{{ money(iva) }}</v-col>
+
+            <v-col cols="6" class="text-subtitle-1 font-weight-bold">Total</v-col>
+            <v-col cols="6" class="text-right text-subtitle-1 font-weight-bold">{{ money(total) }}</v-col>
+          </v-row>
+
+          <v-btn
+            color="success"
+            block
+            size="large"
+            class="mt-2"
+            prepend-icon="mdi-credit-card-outline"
+            @click="checkout"
+          >
+            Pagar
+          </v-btn>
+        </div>
+      </v-navigation-drawer>
+    </v-main>
+
+    <!-- Snackbar -->
+    <v-snackbar v-model="snackbar.show" :timeout="2200" location="bottom right" :color="snackbar.color">
+      <v-icon :icon="snackbar.icon" class="mr-2" />
+      {{ snackbar.text }}
+    </v-snackbar>
+
+    <!-- Dialog ajustes -->
+    <v-dialog v-model="openSettings" max-width="520">
+      <v-card rounded="xl">
+        <v-card-title class="text-h6">Ajustes de vista</v-card-title>
+        <v-card-text>
+          <v-switch v-model="highlightLowStock" color="warning" inset label="Resaltar bajo stock" />
+          <v-switch v-model="onlyInStock" color="success" inset label="Mostrar solo disponibles" />
+          <v-switch v-model="sortByPrice" color="primary" inset label="Ordenar por precio (asc)" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="openSettings = false">Cerrar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-app>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
+import { useTheme } from 'vuetify'
 
-const producto = ref('')
-const productoEncontrado = ref(null)
-const productoNoEncontrado = ref(false)
-const stockCero = ref(false)
+/* --------- Tema / Dark mode --------- */
+const theme = useTheme()
+const isDark = computed(() => theme.global.current.value.dark)
+const toggleTheme = () => {
+  theme.global.name.value = isDark.value ? 'light' : 'dark'
+}
+
+/* --------- Estado --------- */
+const query = ref('')
+const onlyInStock = ref(false)
+const sortByPrice = ref(false)
+const highlightLowStock = ref(true)
+const drawer = ref(false)
+const openSettings = ref(false)
 
 const products = ref([
-  { id: 1, name: 'Arroz',   price: 10, stock: 10 },
-  { id: 2, name: 'Lechuga', price: 5,  stock: 15 },
-  { id: 3, name: 'Avena',   price: 20, stock: 100 },
-  { id: 4, name: 'Tomate',   price: 15, stock: 0 } // probá este en 0 para ver el aviso naranja
+  { id: 1, name: 'Arroz',   price: 10, stock: 10, image: placeholder(1) },
+  { id: 2, name: 'Lechuga', price: 5,  stock: 15, image: placeholder(2) },
+  { id: 3, name: 'Avena',   price: 20, stock: 100, image: placeholder(3) },
+  { id: 4, name: 'Tomate',  price: 15, stock: 0, image: placeholder(4) },
+  { id: 5, name: 'Aceite',  price: 35, stock: 7, image: placeholder(5) },
+  { id: 6, name: 'Yerba',   price: 22, stock: 3, image: placeholder(6) },
 ])
 
 const cart = ref([])
@@ -262,45 +381,92 @@ function decrement(id) {
     removeLine(id)
     return
   }
-
-  productoEncontrado.value = encontrado
-  stockCero.value = encontrado.stock === 0
+  line.cant -= 1
+  line.total = +(line.cant * line.price).toFixed(2)
+  const p = productById(id)
+  if (p) p.stock += 1
 }
 
-function agregarProductoCarrito(id){
-    console.log("Se ha agregado un producto en el carrito id:", id)
-    const producto = products.value.find(p => p.id === id)
-    if (producto && producto.stock > 0) {
-        producto.stock -= 1
-    }
-    const productoCarrito = carrito.value.find(p => p.id === id)
-    if (productoCarrito){
-        const cantidad = productoCarrito.cant
-        productoCarrito.cant += 1
-        productoCarrito.total = productoCarrito.cant * productoCarrito.price
-
-    }else{
-        const cant = 1
-        const productoAgregar ={
-                        id: producto.id,
-                        name: producto.name,
-                        price: producto.price, 
-                        cant: cant, 
-                        total: cant }
-        carrito.value.push(productoAgregar)
-    }
-    buscarProducto()
+function removeLine(id) {
+  const line = cart.value.find(i => i.id === id)
+  if (!line) return
+  const p = productById(id)
+  if (p) p.stock += line.cant
+  cart.value = cart.value.filter(i => i.id !== id)
 }
 
-function eliminarProductoCarrito(id){
-   const productoCarrito = carrito.value.find(p => p.id === id)
-   if(productoCarrito.cant === 1){
-    carrito.value = carrito.value.filter(p => p.id !== id)
-   }
-   productoCarrito.cant -= 1 
-   productoCarrito.total = productoCarrito.cant * productoCarrito.price
-   const producto = products.value.find(p => p.id === id)
-   producto.stock += 1
-   
+function resetFilters() {
+  query.value = ''
+  onlyInStock.value = false
+  sortByPrice.value = false
+  highlightLowStock.value = true
+}
+
+function checkout() {
+  snackbarOpen('Compra realizada (demo)', 'mdi-credit-card-outline', 'primary')
+}
+
+/* --------- Snackbar --------- */
+const snackbar = reactive({ show: false, text: '', icon: 'mdi-check', color: 'success' })
+function snackbarOpen(text, icon = 'mdi-check', color = 'success') {
+  Object.assign(snackbar, { show: false })
+  requestAnimationFrame(() => Object.assign(snackbar, { show: true, text, icon, color }))
 }
 </script>
+
+<style scoped>
+/* Fondo degradado sutil + blur (glassmorphism) */
+.bg-deco {
+  position: fixed;
+  inset: -10% -10% auto -10%;
+  height: 42vh;
+  z-index: 0;
+  background:
+    radial-gradient(30% 40% at 20% 30%, rgba(99,102,241,.25), transparent 60%),
+    radial-gradient(25% 35% at 80% 20%, rgba(236,72,153,.22), transparent 55%),
+    radial-gradient(30% 40% at 50% 80%, rgba(34,197,94,.18), transparent 60%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.bg-gradient-to-r {
+  background: linear-gradient(90deg, rgba(99,102,241,.20), rgba(236,72,153,.10));
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.35);
+}
+:deep(.v-theme--dark) .glass-card {
+  background: rgba(30,30,36,0.45);
+  border-color: rgba(255,255,255,0.06);
+}
+
+.glass-drawer {
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(0,0,0,0.06) !important;
+}
+:deep(.v-theme--dark) .glass-drawer {
+  background: rgba(22,22,28,0.6) !important;
+}
+
+/* skeleton para imágenes */
+.skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,.15), rgba(255,255,255,.35), rgba(255,255,255,.15));
+  animation: pulse 1.2s infinite ease-in-out;
+}
+@keyframes pulse {
+  0% { transform: translateX(-20%); opacity:.8; }
+  50% { opacity: 1; }
+  100% { transform: translateX(20%); opacity:.8; }
+}
+
+/* utilidades */
+.text-right { text-align: right; }
+.gap-2 { gap: .5rem; }
+.gap-3 { gap: .75rem; }
+</style>
