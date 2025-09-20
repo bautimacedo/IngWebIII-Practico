@@ -1,8 +1,12 @@
 <template>
-  <v-container fluid class="pa-6" :class="dark ? 'bg-grey-darken-4' : 'bg-grey-lighten-4'">
+  <v-container
+    fluid
+    class="pa-6 clientes-container"
+    :class="dark ? 'clientes-dark' : 'clientes-light'"
+  >
     <!-- Encabezado -->
     <div class="d-flex align-center justify-space-between mb-6">
-      <h1 class="text-h4 font-weight-bold">Gestión de Clientes</h1>
+      <h1 class="text-h4 font-weight-bold text-primary">Gestión de Clientes</h1>
       <v-switch
         v-model="dark"
         label="Modo oscuro"
@@ -27,7 +31,7 @@
         <v-chip
           filter
           v-model="filters.activo"
-          color="green"
+          color="primary"
           text-color="white"
           class="ma-1"
         >
@@ -36,7 +40,7 @@
         <v-chip
           filter
           v-model="filters.pendiente"
-          color="orange"
+          color="secondary"
           text-color="white"
           class="ma-1"
         >
@@ -80,7 +84,10 @@
         md="4"
         lg="3"
       >
-        <v-card class="pa-4 rounded-xl hover-elevate" :class="dark ? 'bg-grey-darken-3' : 'white'">
+        <v-card
+          class="pa-4 rounded-xl hover-elevate"
+          :class="dark ? 'clientes-card-dark' : 'clientes-card-light'"
+        >
           <div class="d-flex align-center mb-3">
             <v-avatar color="primary" size="48" class="mr-3">
               {{ initials(c.name) }}
@@ -171,7 +178,7 @@ const filters = ref({
 
 const clientes = ref([
   { id: 'CL-0001', name: 'Juan Pérez', email: 'juan@mail.com', phone: '+54 351 123456', country: 'Argentina', status: 'activo' },
-  { id: 'CL-0002', name: 'Ana Gómez', email: 'ana@mail.com', phone: '+54 11 765432', country: 'Argentina', status: 'pendiente' },
+  { id: 'CL-0002', name: 'Ana Gómez', email: 'ana@mail.com', phone: '+54 11 765432', country: 'Argentina', status: 'activo' },
   { id: 'CL-0003', name: 'Carlos López', email: 'carlos@mail.com', phone: '+56 2 112233', country: 'Chile', status: 'inactivo' },
   { id: 'CL-0004', name: 'Sara Díaz', email: 'sara@mail.com', phone: '+51 1 998877', country: 'Perú', status: 'activo' },
   { id: 'CL-0005', name: 'Mark Lee', email: 'mark@mail.com', phone: '+1 415 555 0101', country: 'USA', status: 'activo' },
@@ -206,7 +213,7 @@ const filteredClientes = computed(() => {
 })
 
 function statusColor(s) {
-  return s === 'activo' ? 'green' : s === 'pendiente' ? 'orange' : 'grey'
+  return s === 'activo' ? 'primary' : s === 'pendiente' ? 'secondary' : 'grey'
 }
 
 function initials(name) {
@@ -241,6 +248,24 @@ function deleteCliente(c) {
 </script>
 
 <style scoped>
+.clientes-container {
+  min-height: 100vh;
+  transition: background 0.3s;
+}
+.clientes-light {
+  background: linear-gradient(135deg, #f6f9ff 0%, #eaf6ff 100%);
+}
+.clientes-dark {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: white;
+}
+.clientes-card-light {
+  background: white;
+}
+.clientes-card-dark {
+  background: #1e293b;
+  color: white;
+}
 .hover-elevate:hover {
   transform: translateY(-3px);
   transition: 0.2s;
