@@ -1,14 +1,21 @@
 import { createApp } from 'vue'
-import App from './App.vue' //importo mi componente raiz. en este caso es App.vue
+import App from './App.vue'
+import router from './router'   // 👈 importa el router
 
+// Vuetify
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
 
-import 'bootstrap/dist/css/bootstrap.min.css'
-// (opcional) Bootstrap JS (para modales, tooltips, etc.)
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+const vuetify = createVuetify({
+  components,
+  directives,
+})
 
-//crea la aplicación Vue y le pasa el componente Raiz,
-// a partir de ahi Vue sabe toda mi app empieza en este 
-// componente.
-//mount('#app') --> Le dice a Vue: “Montate en el div con id="app” que está en index.html”.
-// Ese <div id="app"></div> queda reemplazado por lo que renderice Vue a partir de App.vue.
-createApp(App).mount('#app')
+const app = createApp(App)
+
+app.use(router)   // 👈 activa Vue Router
+app.use(vuetify) // 👈 activa Vuetify
+
+app.mount('#app')

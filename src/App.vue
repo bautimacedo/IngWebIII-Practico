@@ -1,17 +1,7 @@
 <template>
-  
-  <ListadoProductosConBusqueda/>
-
+  <v-app>
+    <v-main>
+      <router-view />
+    </v-main>
+  </v-app>
 </template>
-
-
-<script>
-import ListadoProductosConBusqueda from './ListadoProductosConBusqueda.vue';
-
-export default {
-  name: ' App',
-  components: {
-    ListadoProductosConBusqueda
-  },
-}
-</script>
