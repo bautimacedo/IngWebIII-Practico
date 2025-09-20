@@ -5,7 +5,7 @@ import HomeView from '../views/HomeView.vue'
 import ProductosView from '../views/ProductosView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProductoDetalleView from '../views/ProductoDetalleView.vue'
-//import ClientesView from '../views/ClientesView.vue'
+import ClientesView from '../views/ClientesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,8 +39,8 @@ const router = createRouter({
     {
       path: '/clientes',
       name: 'clientes',
-      component: ClienteView,
-    }
+      component: ClientesView,
+    },
   ],
 
   scrollBehavior(to, from, savedPosition) {
