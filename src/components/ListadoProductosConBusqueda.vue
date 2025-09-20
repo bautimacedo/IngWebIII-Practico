@@ -3,7 +3,9 @@
   <v-app>
     <!-- App Bar -->
     <v-app-bar flat class="backdrop-blur-lg bg-gradient-to-r">
-      <v-app-bar-title class="font-weight-bold">Tienda <span class="text-primary">Pro</span></v-app-bar-title>
+      <v-app-bar-title class="font-weight-bold">
+        Tienda <span class="text-primary">Emergente</span>
+      </v-app-bar-title>
 
       <v-text-field
         v-model.trim="query"
@@ -85,24 +87,24 @@
         </v-expand-transition>
 
         <!-- Grilla de productos -->
-<v-row>
-  <v-col
-    v-for="p in filteredProducts"
-    :key="p.id"
-    cols="12" sm="6" md="4" lg="3"
-  >
+        <v-row>
+          <v-col
+            v-for="p in filteredProducts"
+            :key="p.id"
+            cols="12" sm="6" md="4" lg="3"
+          >
             <v-hover v-slot="{ isHovering, props }">
-        <v-card
-          v-bind="props"
-          class="glass-card"
-          :elevation="isHovering ? 16 : 8"
-          rounded="xl"
-          role="button"
-          tabindex="0"
-          @click="verDetalle(p.id)"
-          @keyup.enter.prevent="verDetalle(p.id)"
-          @keyup.space.prevent="verDetalle(p.id)"
-        >
+              <v-card
+                v-bind="props"
+                class="glass-card"
+                :elevation="isHovering ? 16 : 8"
+                rounded="xl"
+                role="button"
+                tabindex="0"
+                @click="verDetalle(p.id)"
+                @keyup.enter.prevent="verDetalle(p.id)"
+                @keyup.space.prevent="verDetalle(p.id)"
+              >
                 <v-img
                   :src="p.image"
                   height="160"
@@ -143,18 +145,18 @@
                 </v-card-item>
 
                 <v-card-actions class="px-4 pb-4">
-                <v-btn
-                  :disabled="p.stock === 0"
-                  color="primary"
-                  block
-                  size="large"
-                  prepend-icon="mdi-cart-plus"
-                  @click.stop="addToCart(p.id)"
-                >
-                  Agregar al carrito
-                </v-btn>
-              </v-card-actions>
-            </v-card>
+                  <v-btn
+                    :disabled="p.stock === 0"
+                    color="primary"
+                    block
+                    size="large"
+                    prepend-icon="mdi-cart-plus"
+                    @click.stop="addToCart(p.id)"
+                  >
+                    Agregar al carrito
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
             </v-hover>
           </v-col>
         </v-row>
@@ -200,7 +202,7 @@
             v-for="item in cart"
             :key="item.id"
             :title="item.name"
-            :subtitle="`${money(item.price)} × ${item.cant} = ${money(item.total)}`"
+            :subtitle="lineSubtitle(item)"
           >
             <template #prepend>
               <v-avatar size="36" rounded="lg">
@@ -280,6 +282,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
+import ProductsDB from '../stores/Productos' // <-- ajustá ruta si tu archivo está en otro lugar
 
 /* --------- Tema / Dark mode --------- */
 const theme = useTheme()
@@ -288,7 +291,7 @@ const toggleTheme = () => {
   theme.global.name.value = isDark.value ? 'light' : 'dark'
 }
 
-/* --------- Estado --------- */
+/* --------- Estado de UI --------- */
 const query = ref('')
 const onlyInStock = ref(false)
 const sortByPrice = ref(false)
@@ -297,20 +300,9 @@ const drawer = ref(false)
 const openSettings = ref(false)
 const router = useRouter()
 
-const products = ref([
-  { id: 1, name: 'Arroz',   price: 10, stock: 10, image: placeholder(1) },
-  { id: 2, name: 'Lechuga', price: 5,  stock: 15, image: placeholder(2) },
-  { id: 3, name: 'Avena',   price: 20, stock: 100, image: placeholder(3) },
-  { id: 4, name: 'Tomate',  price: 15, stock: 0, image: placeholder(4) },
-  { id: 5, name: 'Aceite',  price: 35, stock: 7, image: placeholder(5) },
-  { id: 6, name: 'Yerba',   price: 22, stock: 3, image: placeholder(6) },
-])
-
-const cart = ref([])
-
-/* --------- Derivados --------- */
+/* --------- Derivados: SIEMPRE desde la DB --------- */
 const filteredProducts = computed(() => {
-  let arr = [...products.value]
+  let arr = [...ProductsDB.all()]
   if (query.value) {
     const q = query.value.toLowerCase()
     arr = arr.filter(p => p.name.toLowerCase().includes(q))
@@ -320,6 +312,8 @@ const filteredProducts = computed(() => {
   return arr
 })
 
+/* Carrito local del componente */
+const cart = ref([])
 const cartCount = computed(() => cart.value.reduce((acc, i) => acc + i.cant, 0))
 const subtotal = computed(() => cart.value.reduce((acc, i) => acc + i.total, 0))
 const iva = computed(() => +(subtotal.value * 0.21).toFixed(2))
@@ -327,7 +321,10 @@ const total = computed(() => +(subtotal.value + iva.value).toFixed(2))
 
 /* --------- Helpers --------- */
 function productById(id) {
-  return products.value.find(p => p.id === id)
+  return ProductsDB.byId(id)
+}
+function imageOf(id) {
+  return ProductsDB.byId(id)?.image
 }
 function lowStock(p) {
   return p.stock > 0 && p.stock <= 5
@@ -335,30 +332,12 @@ function lowStock(p) {
 function money(n) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(n)
 }
-function placeholder(i) {
-  // pequeñas abstracciones para una imagen bonita de relleno
-  const colors = ['8EC5FC, E0C3FC', 'FAD0C4, FAD0C4', 'A1C4FD, C2E9FB', 'FBC2EB, A6C1EE', 'FEE140, FA709A', '84FAB0, 8FD3F4']
-  const c = colors[(i - 1) % colors.length]
-  return `data:image/svg+xml;utf8,
-  <svg xmlns='http://www.w3.org/2000/svg' width='600' height='360'>
-    <defs>
-      <linearGradient id='g' x1='0' x2='1'>
-        <stop offset='0%' stop-color='#${c.split(',')[0].trim()}'/>
-        <stop offset='100%' stop-color='#${c.split(',')[1].trim()}'/>
-      </linearGradient>
-    </defs>
-    <rect width='100%' height='100%' fill='url(#g)'/>
-    <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
-      font-family='Inter, Roboto, Arial' font-size='36' fill='rgba(255,255,255,.9)'>Producto</text>
-  </svg>`
-}
-function imageOf(id) {
-  return productById(id)?.image
+function lineSubtitle(item) {
+  return `${money(item.price)} × ${item.cant} = ${money(item.total)}`
 }
 
 /* --------- Acciones --------- */
 function doSearch() {
-  // ya filtra reactivo, mostramos snack con feedback
   snackbarOpen('Búsqueda aplicada', 'mdi-magnify', 'primary')
 }
 
@@ -366,10 +345,10 @@ function addToCart(id) {
   const p = productById(id)
   if (!p || p.stock === 0) return
 
-  // stock
-  p.stock -= 1
+  // actualizar stock en la "DB"
+  ProductsDB.decStock(id, 1)
 
-  // carrito
+  // carrito local
   const line = cart.value.find(i => i.id === id)
   if (line) {
     line.cant += 1
@@ -382,6 +361,7 @@ function addToCart(id) {
 }
 
 function verDetalle(id) {
+  // Ruta de ejemplo; asegurate de tenerla definida en tu router
   router.push({ name: 'producto-detalle', params: { id } })
 }
 
@@ -394,15 +374,16 @@ function decrement(id) {
   }
   line.cant -= 1
   line.total = +(line.cant * line.price).toFixed(2)
-  const p = productById(id)
-  if (p) p.stock += 1
+
+  // devolver stock a la DB
+  ProductsDB.incStock(id, 1)
 }
 
 function removeLine(id) {
   const line = cart.value.find(i => i.id === id)
   if (!line) return
-  const p = productById(id)
-  if (p) p.stock += line.cant
+  // devolver todo el stock al producto
+  ProductsDB.incStock(id, line.cant)
   cart.value = cart.value.filter(i => i.id !== id)
 }
 

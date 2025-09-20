@@ -16,11 +16,19 @@
 
     <!-- Detalle -->
     <v-card v-else class="mt-4" elevation="6" rounded="xl">
-      <v-card-title class="text-h6">{{ producto.nombre }}</v-card-title>
-      <v-card-text>
+      <v-img
+        v-if="producto.image"
+        :src="producto.image"
+        height="240"
+        cover
+        class="rounded-t-xl"
+      />
+
+      <v-card-title class="text-h6">{{ producto.name }}</v-card-title>
+      <v-card-text class="d-flex flex-column gap-2">
         <div><strong>ID:</strong> {{ producto.id }}</div>
-        <div><strong>Precio:</strong> {{ formatoPrecio(producto.precio) }}</div>
-        <div class="mt-2">{{ producto.descripcion }}</div>
+        <div><strong>Precio:</strong> {{ formatoPrecio(producto.price) }}</div>
+        <div v-if="producto.stock !== undefined"><strong>Stock disponible:</strong> {{ producto.stock }}</div>
       </v-card-text>
     </v-card>
   </v-container>
@@ -29,29 +37,26 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import ProductsDB from '@/stores/Productos.js'
 
 const props = defineProps({
-  id: { type: [String, Number], required: true } // ✅ acepta ambos tipos
+  id: { type: [String, Number], required: true },
 })
+
 const router = useRouter()
 
 const cargando = ref(true)
 const producto = ref(null)
 
-// MOCK (reemplazá por tu servicio real)
-async function getProductoByIdMock(id) {
-  const data = [
-    { id: '1', nombre: 'Mouse Gamer',    precio: 19999, descripcion: 'RGB, 6 botones' },
-    { id: '2', nombre: 'Teclado Mecánico', precio: 45999, descripcion: 'Switches Blue' },
-  ]
-  await new Promise(r => setTimeout(r, 300))
-  return data.find(p => String(p.id) === String(id)) || null
+function normalizarId(valor) {
+  const num = Number(valor)
+  return Number.isNaN(num) ? valor : num
 }
 
-async function cargar() {
+function cargar() {
   cargando.value = true
-  const p = await getProductoByIdMock(props.id)
-  producto.value = p
+  const encontrado = ProductsDB.byId(normalizarId(props.id))
+  producto.value = encontrado || null
   cargando.value = false
 }
 

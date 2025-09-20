@@ -9,7 +9,7 @@
 import ListadoProductosConBusqueda from '../components/ListadoProductosConBusqueda.vue'
 
 export default {
-  name: ' App',
+  name: 'ProductosPage',
   components: {
     ListadoProductosConBusqueda
   },
