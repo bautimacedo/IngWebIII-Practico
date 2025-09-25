@@ -1,35 +1,73 @@
 <template>
   <v-container class="py-6">
-    <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="volver">
+    <!-- Botón volver -->
+    <v-btn
+      variant="text"
+      prepend-icon="mdi-arrow-left"
+      @click="volver"
+    >
       Volver
     </v-btn>
 
     <!-- Loading -->
-    <div v-if="cargando" class="mt-4">
-      <v-skeleton-loader type="heading, paragraph, paragraph" />
+    <div v-if="cargando" class="mt-6">
+      <v-skeleton-loader type="image, heading, paragraph" />
     </div>
 
     <!-- No encontrado -->
-    <v-alert v-else-if="!producto" type="error" variant="tonal" class="mt-4">
+    <v-alert
+      v-else-if="!producto"
+      type="error"
+      variant="tonal"
+      class="mt-6"
+    >
       Producto no encontrado
     </v-alert>
 
     <!-- Detalle -->
-    <v-card v-else class="mt-4" elevation="6" rounded="xl">
+    <v-card
+      v-else
+      class="mt-6 pa-4"
+      elevation="6"
+      rounded="xl"
+    >
+      <!-- Imagen -->
       <v-img
         v-if="producto.image"
         :src="producto.image"
-        height="240"
+        height="260"
         cover
-        class="rounded-t-xl"
-      />
+        class="rounded-lg mb-4"
+      >
+        <template #placeholder>
+          <v-skeleton-loader type="image" />
+        </template>
+      </v-img>
 
-      <v-card-title class="text-h6">{{ producto.name }}</v-card-title>
+      <!-- Info -->
+      <v-card-title class="text-h5 font-weight-bold">
+        {{ producto.name }}
+      </v-card-title>
+
       <v-card-text class="d-flex flex-column gap-2">
         <div><strong>ID:</strong> {{ producto.id }}</div>
-        <div><strong>Precio:</strong> {{ formatoPrecio(producto.price) }}</div>
-        <div v-if="producto.stock !== undefined"><strong>Stock disponible:</strong> {{ producto.stock }}</div>
+        <div>
+          <strong>Precio:</strong>
+          <span class="text-primary">{{ formatoPrecio(producto.price) }}</span>
+        </div>
+        <div v-if="producto.stock !== undefined">
+          <strong>Stock:</strong>
+          <v-chip
+            :color="producto.stock > 0 ? 'success' : 'error'"
+            text-color="white"
+            size="small"
+            class="ml-1"
+          >
+            {{ producto.stock > 0 ? producto.stock + ' disponibles' : 'Sin stock' }}
+          </v-chip>
+        </div>
       </v-card-text>
+
     </v-card>
   </v-container>
 </template>
@@ -44,7 +82,6 @@ const props = defineProps({
 })
 
 const router = useRouter()
-
 const cargando = ref(true)
 const producto = ref(null)
 
@@ -60,11 +97,9 @@ function cargar() {
   cargando.value = false
 }
 
-// Recarga si cambia el :id
 watch(() => props.id, cargar, { immediate: true })
 
 function volver() {
-  // Si hay historial, back; si no, ir a /productos
   if (window.history.length > 1) {
     router.back()
   } else {
@@ -72,12 +107,21 @@ function volver() {
   }
 }
 
-// Opcional: formato de precio (ARS)
 function formatoPrecio(v) {
   try {
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v)
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      maximumFractionDigits: 0,
+    }).format(v)
   } catch {
     return `$${v}`
   }
 }
 </script>
+
+<style scoped>
+.gap-2 {
+  gap: 0.5rem;
+}
+</style>

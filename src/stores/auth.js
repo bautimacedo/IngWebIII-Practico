@@ -1,37 +1,40 @@
-import { computed, ref } from 'vue'
+// src/stores/auth.js
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import * as authService from '@/services/authService'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('auth_token') || '')
-  const email = ref(localStorage.getItem('auth_email') || '')
+  const token = ref(null)
+  const user = ref(null)
 
-  const isAuthenticated = computed(() => Boolean(token.value))
+  const isAuthenticated = computed(() => !!token.value)
 
-  function setSession({ token: newToken, email: newEmail }) {
-    token.value = newToken || ''
-    email.value = newEmail || ''
-
-    if (token.value) {
-      localStorage.setItem('auth_token', token.value)
-      if (email.value) {
-        localStorage.setItem('auth_email', email.value)
-      } else {
-        localStorage.removeItem('auth_email')
-      }
-    } else {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_email')
+  // Inicializar sesión desde localStorage al cargar
+  function init() {
+    const session = authService.readSession()
+    if (session) {
+      token.value = session.token
+      user.value = { email: session.email }
     }
   }
 
+  function setSession(session) {
+    token.value = session.token
+    user.value = { email: session.email }
+    authService.saveSession(session)
+  }
+
   function logout() {
-    setSession({ token: '', email: '' })
+    token.value = null
+    user.value = null
+    authService.logout()
   }
 
   return {
     token,
-    email,
+    user,
     isAuthenticated,
+    init,
     setSession,
     logout,
   }
